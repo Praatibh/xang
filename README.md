@@ -103,7 +103,7 @@ Configuration is stored in `~/.config/xang.json`:
 ```json
 {
   "gemini_key": "your-api-key-here",
-  "gemini_model": "gemini-1.5-flash",
+  "gemini_model": "gemini-2.5-flash",
   "user_default_prompt_mode": "exec",
   "user_preferences": "I prefer verbose output and detailed explanations"
 }
