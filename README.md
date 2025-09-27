@@ -1,42 +1,161 @@
-# 🚀 Yai 💬 - AI powered terminal assistant
+# 🚀 Xang 💬 - AI Powered Terminal Assistant
 
-[![build](https://github.com/ekkinox/yai/actions/workflows/build.yml/badge.svg)](https://github.com/ekkinox/yai/actions/workflows/build.yml)
-[![release](https://github.com/ekkinox/yai/actions/workflows/release.yml/badge.svg)](https://github.com/ekkinox/yai/actions/workflows/release.yml)
-[![doc](https://github.com/ekkinox/yai/actions/workflows/doc.yml/badge.svg)](https://github.com/ekkinox/yai/actions/workflows/doc.yml)
+[![build](https://github.com/Praatibh/xang/actions/workflows/build.yml/badge.svg)](https://github.com/Praatibh/xang/actions/workflows/build.yml)
+[![release](https://github.com/Praatibh/xang/actions/workflows/release.yml/badge.svg)](https://github.com/Praatibh/xang/actions/workflows/release.yml)
+[![License](https://img.shields.io/github/license/Praatibh/xang)](https://github.com/Praatibh/xang/blob/main/LICENSE)
 
-> Unleash the power of artificial intelligence to streamline your command line experience.
+> Unleash the power of Google Gemini AI to streamline your command line experience with an anime-style interactive terminal assistant.
 
-![Intro](docs/_assets/intro.gif)
+## What is Xang?
 
-## What is Yai ?
+`Xang` is an intelligent terminal assistant powered by [Google Gemini](https://gemini.google.com/) that helps you build and execute commands using natural language. Simply describe what you want to do in everyday language, and Xang will generate the appropriate terminal commands for you.
 
-`Yai` (your AI) is an assistant for your terminal, using [Google Gemini](https://gemini.google.com/) to build and run commands for you. You just need to describe them in your everyday language, it will take care or the rest. 
+### Key Features
 
-You have any questions on random topics in mind? You can also ask `Yai`, and get the power of AI without leaving `/home`.
+- 🤖 **AI-Powered Command Generation**: Convert natural language to terminal commands
+- 💬 **Interactive Chat Mode**: Ask questions and get AI-powered responses without leaving your terminal  
+- 🎨 **Anime Character Interface**: Features a reactive ASCII art character that responds to different states
+- 🔧 **System Awareness**: Automatically detects your OS, shell, editor, and other system preferences
+- 📝 **Command History**: Navigate through your previous commands with arrow keys
+- ⚡ **Multiple Modes**: Switch between exec mode (🚀) and chat mode (💬) with Tab
+- 🔐 **Secure Configuration**: Uses Gemini API key stored locally in your config
 
-It is already aware of your:
-- operating system & distribution
-- username, shell & home directory
-- preferred editor
+Xang is already aware of your:
+- Operating system & distribution
+- Username, shell & home directory  
+- Preferred editor
+- Custom user preferences
 
-And you can also give any supplementary preferences to fine tune your experience.
+## Quick Start
 
-## Documentation
+### Installation
 
-A complete documentation is available at [https://ekkinox.github.io/yai/](https://ekkinox.github.io/yai/).
-
-## Quick start
-
-To install `Yai`, simply run:
+Install Xang with a single command:
 
 ```shell
-curl -sS https://raw.githubusercontent.com/ekkinox/yai/main/install.sh | bash
+curl -sS https://raw.githubusercontent.com/Praatibh/xang/main/install.sh | bash
 ```
 
-At first run, it will ask you for a [Gemini API key](https://makersuite.google.com/app/apikey), and use it to create the configuration file in `~/.config/yai.json`.
+### First Run Setup
 
-See [documentation](https://ekkinox.github.io/yai/getting-started/#configuration) for more information.
+1. Run `xang` to start the interactive REPL mode
+2. On first run, you'll be prompted to enter your [Gemini API key](https://aistudio.google.com/app/apikey)
+3. Get your free API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+4. The configuration will be saved to `~/.config/xang.json`
 
-## Thanks
+### Usage Examples
 
-Thanks to [@K-arch27](https://github.com/K-arch27) for the `Yai` name suggestion.
+```shell
+# Interactive REPL mode with anime character
+xang
+
+# Execute single command
+xang "list all files in current directory"
+xang "find large files over 100MB"
+xang "create a backup of my documents folder"
+
+# Process piped input
+echo "analyze this data" | xang
+ls -la | xang "explain what these files are"
+```
+
+## Interface Modes
+
+### 🚀 Exec Mode (Default)
+- Generates executable terminal commands from natural language
+- Shows command preview with explanation before execution
+- Confirms before running potentially destructive commands
+
+### 💬 Chat Mode  
+- General AI conversation and assistance
+- Ask programming questions, get explanations
+- No command execution, just helpful responses
+
+Switch between modes by pressing `Tab`.
+
+## Anime Character Reactions
+
+Xang features a reactive ASCII art character that changes expressions based on the current state:
+
+- **Idle**: 😊 Gentle breathing and occasional blinking
+- **Thinking**: 🤔 Pondering your request  
+- **Processing**: 🔄 Working on command generation
+- **Success**: ⭐ Happy when commands succeed
+- **Error**: ❌ Shows concern when errors occur
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `Tab` | Switch between exec (🚀) and chat (💬) modes |
+| `↑/↓` | Navigate command history |
+| `Ctrl+H` | Show help |
+| `Ctrl+L` | Clear terminal (keep history) |
+| `Ctrl+R` | Reset terminal and clear history |
+| `Ctrl+S` | Edit settings |
+| `Ctrl+C` | Exit or interrupt |
+
+## Configuration
+
+Configuration is stored in `~/.config/xang.json`:
+
+```json
+{
+  "gemini_key": "your-api-key-here",
+  "gemini_model": "gemini-1.5-flash",
+  "user_default_prompt_mode": "exec",
+  "user_preferences": "I prefer verbose output and detailed explanations"
+}
+```
+
+Edit your preferences to customize Xang's behavior for your specific needs.
+
+## Building from Source
+
+```shell
+git clone https://github.com/Praatibh/xang.git
+cd xang
+go build -o xang .
+./xang
+```
+
+### Requirements
+- Go 1.19 or later
+- Valid Gemini API key
+
+## Uninstalling
+
+To remove Xang from your system:
+
+```shell
+curl -sS https://raw.githubusercontent.com/Praatibh/xang/main/uninstall.sh | bash
+```
+
+This will remove:
+- The binary from `/usr/local/bin/xang`
+- Configuration file from `~/.config/xang.json`
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Built with [Google Gemini API](https://ai.google.dev/)
+- Inspired by the original [Yai project](https://github.com/ekkinox/yai)
+- Terminal UI powered by [Bubble Tea](https://github.com/charmbracelet/bubbletea)
+- Styling with [Lip Gloss](https://github.com/charmbracelet/lipgloss)
+
+## Support
+
+- 🐛 [Report bugs](https://github.com/Praatibh/xang/issues)
+- 💡 [Request features](https://github.com/Praatibh/xang/issues)
+- 📖 [Documentation](https://github.com/Praatibh/xang/wiki)
+
+---
+
+**Happy coding with Xang!** 🚀
