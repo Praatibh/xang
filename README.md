@@ -1,7 +1,7 @@
 # 🚀 Xang 💬 - AI Powered Terminal Assistant
 
-[![build](https://github.com/Praatibh/xang/actions/workflows/build.yml/badge.svg)](https://github.com/Praatibh/xang/actions/workflows/build.yml)
-[![release](https://github.com/Praatibh/xang/actions/workflows/release.yml/badge.svg)](https://github.com/Praatibh/xang/actions/workflows/release.yml)
+[![build](https://github.com/Praatibh/xang/actions/workflows/build.yml/badge.svg)](https://github.com/Praatibh/xang/.github/workflows/build.yml)
+[![release](https://github.com/Praatibh/xang/actions/workflows/release.yml/badge.svg)](https://github.com/Praatibh/xang/.github/workflows/release.yml)
 [![License](https://img.shields.io/github/license/Praatibh/xang)](https://github.com/Praatibh/xang/blob/master/LICENSE)
 [![Latest Release](https://img.shields.io/github/release/Praatibh/xang.svg)](https://github.com/Praatibh/xang/releases/latest)
 
