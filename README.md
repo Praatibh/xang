@@ -2,7 +2,7 @@
 
 [![build](https://github.com/Praatibh/xang/actions/workflows/build.yml/badge.svg)](https://github.com/Praatibh/xang/actions/workflows/build.yml)
 [![release](https://github.com/Praatibh/xang/actions/workflows/release.yml/badge.svg)](https://github.com/Praatibh/xang/actions/workflows/release.yml)
-[![License](https://img.shields.io/github/license/Praatibh/xang)](https://github.com/Praatibh/xang/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/Praatibh/xang)](https://github.com/Praatibh/xang/blob/master/LICENSE)
 [![Latest Release](https://img.shields.io/github/release/Praatibh/xang.svg)](https://github.com/Praatibh/xang/releases/latest)
 
 > Unleash the power of Google Gemini AI to streamline your command line experience with an anime-style interactive terminal assistant.
