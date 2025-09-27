@@ -8,7 +8,7 @@
 
 <!-- License and latest release version badge (links to latest release) -->
 [![License](https://img.shields.io/github/license/Praatibh/xang)](https://github.com/Praatibh/xang/blob/master/LICENSE)
-[![Latest Release](https://img.shields.io/github/v/release/Praatibh/xang?sort=semver)](https://github.com/Praatibh/xang/releases/latest)
+<!--  [![Latest Release](https://img.shields.io/github/v/release/Praatibh/xang?sort=semver)](https://github.com/Praatibh/xang/releases/latest)-->
 
 
 > Unleash the power of Google Gemini AI to streamline your command line experience with an anime-style interactive terminal assistant.
