@@ -146,7 +146,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Built with [Google Gemini API](https://ai.google.dev/)
-- Inspired by the original [Yai project](https://github.com/ekkinox/yai)
 - Terminal UI powered by [Bubble Tea](https://github.com/charmbracelet/bubbletea)
 - Styling with [Lip Gloss](https://github.com/charmbracelet/lipgloss)
 
