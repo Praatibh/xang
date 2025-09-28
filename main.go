@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/ekkinox/yai/ui"
+	"github.com/Praatibh/xang/ui"
 
 	tea "github.com/charmbracelet/bubbletea"
 )

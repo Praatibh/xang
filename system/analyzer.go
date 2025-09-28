@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ekkinox/yai/run"
+	"github.com/Praatibh/xang/run"
 
 	"github.com/mitchellh/go-homedir"
 )

@@ -7,10 +7,10 @@ import (
     "strings"
     "time"
 
-    "github.com/ekkinox/yai/ai"
-    "github.com/ekkinox/yai/config"
-    "github.com/ekkinox/yai/history"
-    "github.com/ekkinox/yai/run"
+    "github.com/Praatibh/xang/ai"
+    "github.com/Praatibh/xang/config"
+    "github.com/Praatibh/xang/history"
+    "github.com/Praatibh/xang/run"
 
     "github.com/charmbracelet/bubbles/spinner"
     "github.com/charmbracelet/bubbles/textinput"

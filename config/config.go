@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ekkinox/yai/system"
+	"github.com/Praatibh/xang/system"
 	"github.com/spf13/viper"
 )
 

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ekkinox/yai/system"
+	"github.com/Praatibh/xang/system"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -24,7 +24,7 @@ func setupViper(t *testing.T) {
 	viper.SetConfigName(strings.ToLower(system.GetApplicationName()))
 	viper.AddConfigPath("/tmp/")
 	viper.Set(gemini_key, "test_key")
-	viper.Set(gemini_model, "gemini-pro")
+	viper.Set(gemini_model, "gemini-1.5-flash")
 	viper.Set(user_default_prompt_mode, "exec")
 	viper.Set(user_preferences, "test_preferences")
 
@@ -44,7 +44,7 @@ func testNewConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "test_key", cfg.GetAiConfig().GetKey())
-	assert.Equal(t, "gemini-pro", cfg.GetAiConfig().GetModel())
+	assert.Equal(t, "gemini-1.5-flash", cfg.GetAiConfig().GetModel())
 	assert.Equal(t, "exec", cfg.GetUserConfig().GetDefaultPromptMode())
 	assert.Equal(t, "test_preferences", cfg.GetUserConfig().GetPreferences())
 
@@ -59,14 +59,14 @@ func testWriteConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "new_test_key", cfg.GetAiConfig().GetKey())
-	assert.Equal(t, "gemini-pro", cfg.GetAiConfig().GetModel())
+	assert.Equal(t, "gemini-1.5-flash", cfg.GetAiConfig().GetModel())
 	assert.Equal(t, "exec", cfg.GetUserConfig().GetDefaultPromptMode())
 	assert.Equal(t, "test_preferences", cfg.GetUserConfig().GetPreferences())
 
 	assert.NotNil(t, cfg.GetSystemConfig())
 
 	assert.Equal(t, "new_test_key", viper.GetString(gemini_key))
-	assert.Equal(t, "gemini-pro", viper.GetString(gemini_model))
+	assert.Equal(t, "gemini-1.5-flash", viper.GetString(gemini_model))
 	assert.Equal(t, "exec", viper.GetString(user_default_prompt_mode))
 	assert.Equal(t, "test_preferences", viper.GetString(user_preferences))
 }

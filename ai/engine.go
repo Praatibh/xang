@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ekkinox/yai/config"
-	"github.com/ekkinox/yai/system"
+	"github.com/Praatibh/xang/config"
+	"github.com/Praatibh/xang/system"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/iterator"
