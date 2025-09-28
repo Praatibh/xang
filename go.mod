@@ -12,7 +12,7 @@ require (
 	github.com/google/generative-ai-go v0.20.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/viper v1.18.1
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.11.1
 	google.golang.org/api v0.186.0
 )
 
