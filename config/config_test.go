@@ -2,71 +2,108 @@ package config
 
 import (
 	"os"
-	"strings"
+	"path/filepath"
 	"testing"
 
-	"github.com/Praatibh/xang/system"
-
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
+func TestAiConfig(t *testing.T) {
+	t.Run("GetKey", func(t *testing.T) {
+		aiConfig := &AiConfig{key: "test-key"}
+		assert.Equal(t, "test-key", aiConfig.GetKey())
+	})
+
+	t.Run("GetModel", func(t *testing.T) {
+		aiConfig := &AiConfig{model: "test-model"}
+		assert.Equal(t, "test-model", aiConfig.GetModel())
+	})
+}
+
 func TestConfig(t *testing.T) {
-	t.Run("NewConfig", testNewConfig)
-	t.Run("WriteConfig", testWriteConfig)
+	// Setup: Create a temporary config file for testing
+	setupTestConfig := func(t *testing.T) (string, func()) {
+		// Create temporary directory
+		tmpDir, err := os.MkdirTemp("", "xang-test-*")
+		assert.NoError(t, err)
+
+		// Create config file
+		configPath := filepath.Join(tmpDir, "xang.yaml")
+		configContent := `ai:
+  key: "test-api-key"
+  model: "gemini-1.5-flash"
+user:
+  default_prompt_mode: "exec"
+  preferences: []
+system:
+  editor: "nano"
+`
+		err = os.WriteFile(configPath, []byte(configContent), 0644)
+		assert.NoError(t, err)
+
+		// Set config path environment variable
+		oldConfigPath := os.Getenv("XDG_CONFIG_HOME")
+		os.Setenv("XDG_CONFIG_HOME", tmpDir)
+
+		// Return cleanup function
+		cleanup := func() {
+			os.Setenv("XDG_CONFIG_HOME", oldConfigPath)
+			os.RemoveAll(tmpDir)
+		}
+
+		return tmpDir, cleanup
+	}
+
+	t.Run("NewConfig", func(t *testing.T) {
+		tmpDir, cleanup := setupTestConfig(t)
+		defer cleanup()
+
+		config, err := NewConfig()
+		assert.NoError(t, err)
+		assert.NotNil(t, config)
+		
+		// Verify config was loaded correctly
+		assert.Equal(t, "test-api-key", config.GetAiConfig().GetKey())
+		assert.Equal(t, "gemini-1.5-flash", config.GetAiConfig().GetModel())
+		
+		// Verify config file path
+		expectedPath := filepath.Join(tmpDir, "xang.yaml")
+		assert.Equal(t, expectedPath, config.GetSystemConfig().GetConfigFile())
+	})
+
+	t.Run("WriteConfig", func(t *testing.T) {
+		tmpDir, cleanup := setupTestConfig(t)
+		defer cleanup()
+
+		// Write new config
+		config, err := WriteConfig("new-api-key", true)
+		assert.NoError(t, err)
+		assert.NotNil(t, config)
+		
+		// Verify the key was updated
+		assert.Equal(t, "new-api-key", config.GetAiConfig().GetKey())
+		
+		// Verify file was written
+		configPath := filepath.Join(tmpDir, "xang.yaml")
+		_, err = os.Stat(configPath)
+		assert.NoError(t, err)
+		
+		// Read config again to verify persistence
+		config2, err := NewConfig()
+		assert.NoError(t, err)
+		assert.Equal(t, "new-api-key", config2.GetAiConfig().GetKey())
+	})
 }
 
-func setupViper(t *testing.T) {
-	t.Helper()
-	system := system.Analyse()
+func TestUserConfig(t *testing.T) {
+	t.Run("GetDefaultPromptMode", func(t *testing.T) {
+		userConfig := &UserConfig{defaultPromptMode: "exec"}
+		assert.Equal(t, "exec", userConfig.GetDefaultPromptMode())
+	})
 
-	viper.SetConfigName(strings.ToLower(system.GetApplicationName()))
-	viper.AddConfigPath("/tmp/")
-	viper.Set(gemini_key, "test_key")
-	viper.Set(gemini_model, "gemini-1.5-flash")
-	viper.Set(user_default_prompt_mode, "exec")
-	viper.Set(user_preferences, "test_preferences")
-
-	require.NoError(t, viper.SafeWriteConfigAs("/tmp/yai.json"))
-}
-
-func cleanup(t *testing.T) {
-	t.Helper()
-	require.NoError(t, os.Remove("/tmp/yai.json"))
-}
-
-func testNewConfig(t *testing.T) {
-	setupViper(t)
-	defer cleanup(t)
-
-	cfg, err := NewConfig()
-	require.NoError(t, err)
-
-	assert.Equal(t, "test_key", cfg.GetAiConfig().GetKey())
-	assert.Equal(t, "gemini-1.5-flash", cfg.GetAiConfig().GetModel())
-	assert.Equal(t, "exec", cfg.GetUserConfig().GetDefaultPromptMode())
-	assert.Equal(t, "test_preferences", cfg.GetUserConfig().GetPreferences())
-
-	assert.NotNil(t, cfg.GetSystemConfig())
-}
-
-func testWriteConfig(t *testing.T) {
-	setupViper(t)
-	defer cleanup(t)
-
-	cfg, err := WriteConfig("new_test_key", false)
-	require.NoError(t, err)
-
-	assert.Equal(t, "new_test_key", cfg.GetAiConfig().GetKey())
-	assert.Equal(t, "gemini-1.5-flash", cfg.GetAiConfig().GetModel())
-	assert.Equal(t, "exec", cfg.GetUserConfig().GetDefaultPromptMode())
-	assert.Equal(t, "test_preferences", cfg.GetUserConfig().GetPreferences())
-
-	assert.NotNil(t, cfg.GetSystemConfig())
-
-	assert.Equal(t, "new_test_key", viper.GetString(gemini_key))
-	assert.Equal(t, "gemini-1.5-flash", viper.GetString(gemini_model))
-	assert.Equal(t, "exec", viper.GetString(user_default_prompt_mode))
-	assert.Equal(t, "test_preferences", viper.GetString(user_preferences))
+	t.Run("GetPreferences", func(t *testing.T) {
+		prefs := []string{"pref1", "pref2"}
+		userConfig := &UserConfig{preferences: prefs}
+		assert.Equal(t, prefs, userConfig.GetPreferences())
+	})
 }
