@@ -11,7 +11,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
-const APPLICATION_NAME = "Yai"
+const APPLICATION_NAME = "Xang"
 
 type Analysis struct {
 	operatingSystem OperatingSystem
