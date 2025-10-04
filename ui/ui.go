@@ -100,14 +100,22 @@ func characterAnimationTick() tea.Cmd {
 func (u *Ui) renderWithCharacter(content string) string {
     character := u.components.character.Render()
     
+    // Fixed width calculation - character takes 22 chars (including margins)
+    characterWidth := 22
+    contentWidth := u.dimensions.width - characterWidth - 2 // Extra padding
+    
+    if contentWidth < 40 {
+        contentWidth = 40 // Minimum content width
+    }
+    
     // Create layout styles
     leftColumn := lipgloss.NewStyle().
-        Width(20).
+        Width(characterWidth).
         Align(lipgloss.Left).
         Render(character)
         
     rightColumn := lipgloss.NewStyle().
-        Width(u.dimensions.width - 25).
+        Width(contentWidth).
         Align(lipgloss.Left).
         Render(content)
     
@@ -122,6 +130,7 @@ func (u *Ui) Init() tea.Cmd {
                 return tea.Sequence(
                     tea.ClearScreen,
                     u.startConfig(),
+                    characterAnimationTick(), // Initialize animation ticker
                 )
             } else {
                 return tea.Sequence(
@@ -142,6 +151,7 @@ func (u *Ui) Init() tea.Cmd {
             return tea.Sequence(
                 tea.ClearScreen,
                 u.startConfig(),
+                characterAnimationTick(), // Initialize animation ticker
             )
         } else {
             return tea.Sequence(
@@ -162,9 +172,15 @@ func (u *Ui) Init() tea.Cmd {
     u.engine = engine
 
     if u.state.runMode == ReplMode {
-        return u.startRepl(config)
+        return tea.Sequence(
+            u.startRepl(config),
+            characterAnimationTick(), // Initialize animation ticker for REPL
+        )
     } else {
-        return u.startCli(config)
+        return tea.Sequence(
+            u.startCli(config),
+            characterAnimationTick(), // Initialize animation ticker for CLI
+        )
     }
 }
 
@@ -176,10 +192,10 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     )
 
     switch msg := msg.(type) {
-    // Character animation updates
+    // Character animation updates - CRITICAL FIX: Return immediately to trigger View()
     case characterAnimationMsg:
         u.components.character.Update()
-        cmds = append(cmds, characterAnimationTick())
+        return u, characterAnimationTick()
         
     // spinner
     case spinner.TickMsg:
@@ -194,9 +210,17 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     case tea.WindowSizeMsg:
         u.dimensions.width = msg.Width
         u.dimensions.height = msg.Height
+        
+        // Recalculate content width accounting for character space
+        characterWidth := 22
+        contentWidth := u.dimensions.width - characterWidth - 2
+        if contentWidth < 40 {
+            contentWidth = 40
+        }
+        
         u.components.renderer = NewRenderer(
             glamour.WithAutoStyle(),
-            glamour.WithWordWrap(u.dimensions.width-25), // Account for character space
+            glamour.WithWordWrap(contentWidth),
         )
     // keyboard
     case tea.KeyMsg:
@@ -210,6 +234,7 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 var input *string
                 if msg.Type == tea.KeyUp {
                     input = u.history.GetPrevious()
+                    u.components.character.SetExpression("curious") // Character looks curious when browsing history
                 } else {
                     input = u.history.GetNext()
                 }
@@ -220,6 +245,9 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                         cmds,
                         promptCmd,
                     )
+                } else {
+                    // No more history, go back to idle
+                    u.components.character.SetExpression("idle")
                 }
             }
         // switch mode
@@ -235,7 +263,7 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     u.engine.SetMode(ai.ChatEngineMode)
                 }
                 u.engine.Reset()
-                u.components.character.SetExpression("thinking") // Character reacts to mode change
+                u.components.character.SetExpression("working") // Character shows working state
                 u.components.prompt, promptCmd = u.components.prompt.Update(msg)
                 cmds = append(
                     cmds,
@@ -274,13 +302,16 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                             u.components.spinner.Tick,
                         )
                     }
+                } else {
+                    // Empty input - character looks confused
+                    u.components.character.SetExpression("confused")
                 }
             }
 
         // help
         case tea.KeyCtrlH:
             if !u.state.configuring && !u.state.querying && !u.state.confirming {
-                u.components.character.SetExpression("happy") // Character is happy to help
+                u.components.character.SetExpression("celebrating") // Character celebrates helping
                 u.components.prompt, promptCmd = u.components.prompt.Update(msg)
                 cmds = append(
                     cmds,
@@ -308,7 +339,7 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             if !u.state.querying && !u.state.confirming {
                 u.history.Reset()
                 u.engine.Reset()
-                u.components.character.SetExpression("idle")
+                u.components.character.SetExpression("sleepy") // Character briefly shows tired from reset
                 u.components.prompt.SetValue("")
                 u.components.prompt, promptCmd = u.components.prompt.Update(msg)
                 cmds = append(
@@ -317,6 +348,11 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     tea.ClearScreen,
                     textinput.Blink,
                 )
+                // Return to idle after a moment
+                go func() {
+                    time.Sleep(1 * time.Second)
+                    u.components.character.SetExpression("idle")
+                }()
             }
 
         // edit settings
@@ -325,7 +361,7 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 u.state.executing = true
                 u.state.buffer = ""
                 u.state.command = ""
-                u.components.character.SetExpression("processing")
+                u.components.character.SetExpression("working")
                 u.components.prompt.Blur()
                 u.components.prompt, promptCmd = u.components.prompt.Update(msg)
                 cmds = append(
@@ -341,7 +377,7 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     u.state.confirming = false
                     u.state.executing = true
                     u.state.buffer = ""
-                    u.components.character.SetExpression("processing")
+                    u.components.character.SetExpression("working")
                     u.components.prompt.SetValue("")
                     return u, tea.Sequence(
                         promptCmd,
@@ -351,7 +387,7 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     u.state.confirming = false
                     u.state.executing = false
                     u.state.buffer = ""
-                    u.components.character.SetExpression("idle")
+                    u.components.character.SetExpression("confused") // Character is confused about cancellation
                     u.components.prompt, promptCmd = u.components.prompt.Update(msg)
                     u.components.prompt.SetValue("")
                     u.components.prompt.Focus()
@@ -362,6 +398,11 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                             tea.Println(u.renderWithCharacter(fmt.Sprintf("\n%s\n", u.components.renderer.RenderWarning("[cancel]")))),
                             textinput.Blink,
                         )
+                        // Return to idle after brief confusion
+                        go func() {
+                            time.Sleep(1500 * time.Millisecond)
+                            u.components.character.SetExpression("idle")
+                        }()
                     } else {
                         return u, tea.Sequence(
                             promptCmd,
@@ -388,12 +429,12 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         if msg.IsExecutable() {
             u.state.confirming = true
             u.state.command = msg.GetCommand()
-            u.components.character.SetExpression("success") // Character shows success
+            u.components.character.SetExpression("curious") // Character is curious about execution
             output = u.components.renderer.RenderContent(fmt.Sprintf("`%s`", u.state.command))
             output += fmt.Sprintf("  %s\n\n  confirm execution? [y/N]", u.components.renderer.RenderHelp(msg.GetExplanation()))
             u.components.prompt.Blur()
         } else {
-            u.components.character.SetExpression("thinking")
+            u.components.character.SetExpression("happy")
             output = u.components.renderer.RenderContent(msg.GetExplanation())
             u.components.prompt.Focus()
             if u.state.runMode == CliMode {
@@ -413,7 +454,7 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     case ai.EngineChatStreamOutput:
         if msg.IsLast() {
             u.state.querying = false
-            u.components.character.SetExpression("happy") // Character is happy after completing response
+            u.components.character.SetExpression("celebrating") // Character celebrates completion
             output := u.components.renderer.RenderContent(u.state.buffer)
             u.state.buffer = ""
             u.components.prompt.Focus()
@@ -423,6 +464,11 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     tea.Quit,
                 )
             } else {
+                // Return to idle after celebrating
+                go func() {
+                    time.Sleep(2 * time.Second)
+                    u.components.character.SetExpression("idle")
+                }()
                 return u, tea.Sequence(
                     tea.Println(u.renderWithCharacter(output)),
                     textinput.Blink,
@@ -444,9 +490,19 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         if msg.HasError() {
             u.components.character.SetExpression("error") // Character shows error
             output = u.components.renderer.RenderError(fmt.Sprintf("\n%s\n", msg.GetErrorMessage()))
+            // Return to idle after showing error
+            go func() {
+                time.Sleep(2 * time.Second)
+                u.components.character.SetExpression("idle")
+            }()
         } else {
-            u.components.character.SetExpression("success") // Character shows success
+            u.components.character.SetExpression("celebrating") // Character celebrates success
             output = u.components.renderer.RenderSuccess(fmt.Sprintf("\n%s\n", msg.GetSuccessMessage()))
+            // Return to idle after celebrating
+            go func() {
+                time.Sleep(2 * time.Second)
+                u.components.character.SetExpression("idle")
+            }()
         }
         
         if u.state.runMode == CliMode {
@@ -477,41 +533,49 @@ func (u *Ui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (u *Ui) View() string {
+    // CRITICAL FIX: Always wrap content in renderWithCharacter so animation is visible
+    
     if u.state.error != nil {
-        return u.components.renderer.RenderError(fmt.Sprintf("[error] %s", u.state.error))
+        return u.renderWithCharacter(u.components.renderer.RenderError(fmt.Sprintf("[error] %s", u.state.error)))
     }
 
     if u.state.configuring {
-        return fmt.Sprintf(
+        configView := fmt.Sprintf(
             "%s\n%s",
             u.components.renderer.RenderContent(u.state.buffer),
             u.components.prompt.View(),
         )
+        return u.renderWithCharacter(configView)
     }
 
     if !u.state.querying && !u.state.confirming && !u.state.executing {
-        return u.components.prompt.View()
+        return u.renderWithCharacter(u.components.prompt.View())
     }
 
     if u.state.promptMode == ChatPromptMode {
-        return u.components.renderer.RenderContent(u.state.buffer)
+        if u.state.buffer != "" {
+            return u.renderWithCharacter(u.components.renderer.RenderContent(u.state.buffer))
+        }
+        return u.renderWithCharacter("") // Show character even with empty buffer
     } else {
         if u.state.querying {
-            return u.components.spinner.View()
+            return u.renderWithCharacter(u.components.spinner.View())
         } else {
             if !u.state.executing {
-                return u.components.renderer.RenderContent(u.state.buffer)
+                if u.state.buffer != "" {
+                    return u.renderWithCharacter(u.components.renderer.RenderContent(u.state.buffer))
+                }
             }
         }
     }
 
-    return ""
+    return u.renderWithCharacter("") // Always show character as fallback
 }
 
 func (u *Ui) startRepl(config *config.Config) tea.Cmd {
     return tea.Sequence(
         tea.ClearScreen,
-        tea.Println(u.components.renderer.RenderContent(u.components.renderer.RenderHelpMessage())),
+        tea.Println(u.renderWithCharacter(u.components.renderer.RenderContent(u.components.renderer.RenderHelpMessage()))),
         textinput.Blink,
         func() tea.Msg {
             u.config = config
@@ -538,6 +602,13 @@ func (u *Ui) startRepl(config *config.Config) tea.Cmd {
             u.state.buffer = "Welcome \n\n"
             u.state.command = ""
             u.components.prompt = NewPrompt(u.state.promptMode)
+            u.components.character.SetExpression("happy") // Character greets user happily
+
+            // Return to idle after greeting
+            go func() {
+                time.Sleep(2 * time.Second)
+                u.components.character.SetExpression("idle")
+            }()
 
             return nil
         },
@@ -571,6 +642,7 @@ func (u *Ui) startCli(config *config.Config) tea.Cmd {
     u.state.confirming = false
     u.state.buffer = ""
     u.state.command = ""
+    u.components.character.SetExpression("thinking") // Character starts thinking
 
     if u.state.promptMode == ExecPromptMode {
         return tea.Batch(
@@ -603,6 +675,7 @@ func (u *Ui) startConfig() tea.Cmd {
         u.state.buffer = u.components.renderer.RenderConfigMessage()
         u.state.command = ""
         u.components.prompt = NewPrompt(ConfigPromptMode)
+        u.components.character.SetExpression("curious") // Character is curious during config
 
         return nil
     }
@@ -614,6 +687,7 @@ func (u *Ui) finishConfig(key string) tea.Cmd {
     config, err := config.WriteConfig(key, true)
     if err != nil {
         u.state.error = err
+        u.components.character.SetExpression("error")
         return nil
     }
 
@@ -621,6 +695,7 @@ func (u *Ui) finishConfig(key string) tea.Cmd {
     engine, err := ai.NewEngine(ai.ExecEngineMode, config)
     if err != nil {
         u.state.error = err
+        u.components.character.SetExpression("error")
         return nil
     }
 
@@ -629,11 +704,18 @@ func (u *Ui) finishConfig(key string) tea.Cmd {
     }
 
     u.engine = engine
+    u.components.character.SetExpression("celebrating") // Character celebrates successful config
 
     if u.state.runMode == ReplMode {
+        // Return to idle after celebrating
+        go func() {
+            time.Sleep(2 * time.Second)
+            u.components.character.SetExpression("idle")
+        }()
+        
         return tea.Sequence(
             tea.ClearScreen,
-            tea.Println(u.components.renderer.RenderSuccess("\n[settings ok]\n")),
+            tea.Println(u.renderWithCharacter(u.components.renderer.RenderSuccess("\n[settings ok]\n"))),
             textinput.Blink,
             func() tea.Msg {
                 u.state.buffer = ""
@@ -648,8 +730,10 @@ func (u *Ui) finishConfig(key string) tea.Cmd {
             u.state.querying = true
             u.state.configuring = false
             u.state.buffer = ""
+            u.components.character.SetExpression("thinking")
+            
             return tea.Sequence(
-                tea.Println(u.components.renderer.RenderSuccess("\n[settings ok]")),
+                tea.Println(u.renderWithCharacter(u.components.renderer.RenderSuccess("\n[settings ok]"))),
                 u.components.spinner.Tick,
                 func() tea.Msg {
                     output, err := u.engine.ExecCompletion(u.state.args)

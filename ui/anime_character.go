@@ -14,6 +14,7 @@ type AnimeCharacter struct {
 	isAnimating      bool
 	animationFrame   int
 	lastUpdate       time.Time
+	idleCounter      int // Track how long we've been idle
 }
 
 // Different expressions for the anime character
@@ -61,20 +62,40 @@ var expressions = map[string][]string{
 		"  ╰─────────╯  ",
 	},
 	"curious": {
-    "  ╭───────────╮  ",
-    "  │  ◕    ●   │  ",  // one eye bigger
-    "  │      ○    │  ",
-    "  │  curious? │  ",
-    "  ╰───────────╯  ",
-    },
-	"sleepy": {
-    "  ╭───────────╮  ",
-    "  │  ―    ―   │  ",
-    "  │      ω    │  ",
-    "  │   zzz...  │  ",
-    "  ╰───────────╯  ",
+		"  ╭─────────╮  ",
+		"  │  ◕   ●  │  ",
+		"  │     ○   │  ",
+		"  │curious? │  ",
+		"  ╰─────────╯  ",
 	},
-
+	"sleepy": {
+		"  ╭─────────╮  ",
+		"  │  ―   ―  │  ",
+		"  │     ω   │  ",
+		"  │  zzz... │  ",
+		"  ╰─────────╯  ",
+	},
+	"confused": {
+		"  ╭─────────╮  ",
+		"  │  ◔   ◕  │  ",
+		"  │     ?   │  ",
+		"  │  huh?   │  ",
+		"  ╰─────────╯  ",
+	},
+	"working": {
+		"  ╭─────────╮  ",
+		"  │  ●   ●  │  ",
+		"  │     ▽   │  ",
+		"  │ working │  ",
+		"  ╰─────────╯  ",
+	},
+	"celebrating": {
+		"  ╭─────────╮  ",
+		"  │  ☆   ☆  │  ",
+		"  │     ▿   │  ",
+		"  │  yay!   │  ",
+		"  ╰─────────╯  ",
+	},
 }
 
 // Blinking animation frames
@@ -95,12 +116,70 @@ var blinkFrames = [][]string{
 	},
 }
 
+// Thinking animation frames (dots cycling)
+var thinkingFrames = [][]string{
+	{
+		"  ╭─────────╮  ",
+		"  │  ◔   ◔  │  ",
+		"  │     ~   │  ",
+		"  │thinking.│  ",
+		"  ╰─────────╯  ",
+	},
+	{
+		"  ╭─────────╮  ",
+		"  │  ◔   ◔  │  ",
+		"  │     ~   │  ",
+		"  │thinking..│ ",
+		"  ╰─────────╯  ",
+	},
+	{
+		"  ╭─────────╮  ",
+		"  │  ◔   ◔  │  ",
+		"  │     ~   │  ",
+		"  │thinking...│",
+		"  ╰─────────╯  ",
+	},
+}
+
+// Processing animation frames (eyes moving)
+var processingFrames = [][]string{
+	{
+		"  ╭─────────╮  ",
+		"  │  ●   ●  │  ",
+		"  │     ―   │  ",
+		"  │analyzing│  ",
+		"  ╰─────────╯  ",
+	},
+	{
+		"  ╭─────────╮  ",
+		"  │  ◐   ◐  │  ",
+		"  │     ―   │  ",
+		"  │analyzing│  ",
+		"  ╰─────────╯  ",
+	},
+	{
+		"  ╭─────────╮  ",
+		"  │  ◑   ◑  │  ",
+		"  │     ―   │  ",
+		"  │analyzing│  ",
+		"  ╰─────────╯  ",
+	},
+	{
+		"  ╭─────────╮  ",
+		"  │  ◒   ◒  │  ",
+		"  │     ―   │  ",
+		"  │analyzing│  ",
+		"  ╰─────────╯  ",
+	},
+}
+
 func NewAnimeCharacter() *AnimeCharacter {
 	return &AnimeCharacter{
 		currentExpression: "idle",
 		isAnimating:      false,
 		animationFrame:   0,
 		lastUpdate:       time.Now(),
+		idleCounter:      0,
 	}
 }
 
@@ -109,6 +188,7 @@ func (ac *AnimeCharacter) SetExpression(expr string) {
 		ac.currentExpression = expr
 		ac.animationFrame = 0
 		ac.lastUpdate = time.Now()
+		ac.idleCounter = 0
 	}
 }
 
@@ -121,10 +201,22 @@ func (ac *AnimeCharacter) GetCurrentFrame() []string {
 		ac.lastUpdate = now
 	}
 	
-	if ac.isAnimating && ac.currentExpression == "idle" {
-		// Blinking animation
-		frameIndex := ac.animationFrame % len(blinkFrames)
-		return blinkFrames[frameIndex]
+	// Handle different animated states
+	switch ac.currentExpression {
+	case "idle":
+		if ac.isAnimating {
+			// Blinking animation
+			frameIndex := ac.animationFrame % len(blinkFrames)
+			return blinkFrames[frameIndex]
+		}
+	case "thinking":
+		// Animated thinking dots
+		frameIndex := ac.animationFrame % len(thinkingFrames)
+		return thinkingFrames[frameIndex]
+	case "processing":
+		// Animated processing eyes
+		frameIndex := ac.animationFrame % len(processingFrames)
+		return processingFrames[frameIndex]
 	}
 	
 	if frames, exists := expressions[ac.currentExpression]; exists {
@@ -136,15 +228,35 @@ func (ac *AnimeCharacter) GetCurrentFrame() []string {
 func (ac *AnimeCharacter) Update() {
 	ac.animationFrame++
 	
-	// Random blinking when idle (5% chance each update)
-	if ac.currentExpression == "idle" && rand.Intn(100) < 5 {
-		ac.isAnimating = true
-	}
+	switch ac.currentExpression {
+	case "idle":
+		ac.idleCounter++
+		
+		// Random blinking when idle (5% chance each update)
+		if rand.Intn(100) < 5 {
+			ac.isAnimating = true
+		}
+		
+		// Stop blinking animation after 3 frames
+		if ac.isAnimating && ac.animationFrame > 3 {
+			ac.isAnimating = false
+			ac.animationFrame = 0
+		}
+		
+		// After being idle for a while (30 seconds = 60 updates), get sleepy
+		if ac.idleCounter > 60 {
+			ac.SetExpression("sleepy")
+		}
 	
-	// Stop blinking animation after 3 frames
-	if ac.isAnimating && ac.animationFrame > 3 {
-		ac.isAnimating = false
-		ac.animationFrame = 0
+	case "thinking", "processing":
+		// These states continuously animate
+		// Animation frames loop automatically via modulo in GetCurrentFrame
+		
+	case "sleepy":
+		// Random chance to wake up and go back to idle
+		if rand.Intn(100) < 2 {
+			ac.SetExpression("idle")
+		}
 	}
 }
 
@@ -165,6 +277,16 @@ func (ac *AnimeCharacter) Render() string {
 		color = "129" // Purple
 	case "success":
 		color = "82"  // Bright Green
+	case "curious":
+		color = "51"  // Cyan
+	case "sleepy":
+		color = "242" // Gray
+	case "confused":
+		color = "208" // Orange
+	case "working":
+		color = "141" // Light Purple
+	case "celebrating":
+		color = "201" // Magenta
 	default:
 		color = "86"
 	}
