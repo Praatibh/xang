@@ -1,10 +1,9 @@
 name: Build
-
 on:
   push:
-    branches: [ master ]  # Changed from 'main' to 'master'
+    branches: [ master ]
   pull_request:
-    branches: [ master ]  # Changed from 'main' to 'master'
+    branches: [ master ]
 
 jobs:
   build:
@@ -29,21 +28,47 @@ jobs:
     - name: Download dependencies
       run: go mod download
     
+    # CRITICAL FIX: Setup test environment for config tests
+    - name: Setup test environment
+      run: |
+        mkdir -p /tmp/xang-test-config
+        export XDG_CONFIG_HOME=/tmp/xang-test-config
+        echo "XDG_CONFIG_HOME=/tmp/xang-test-config" >> $GITHUB_ENV
+    
     - name: Run tests
       run: go test -v ./...
+      env:
+        XDG_CONFIG_HOME: /tmp/xang-test-config
     
     - name: Build for Linux
       run: GOOS=linux GOARCH=amd64 go build -v -o xang_linux_amd64 .
     
-    - name: Build for macOS
+    - name: Build for macOS (AMD64)
       run: GOOS=darwin GOARCH=amd64 go build -v -o xang_darwin_amd64 .
+    
+    - name: Build for macOS (ARM64)
+      run: GOOS=darwin GOARCH=arm64 go build -v -o xang_darwin_arm64 .
     
     - name: Build for Windows
       run: GOOS=windows GOARCH=amd64 go build -v -o xang_windows_amd64.exe .
     
     - name: Verify builds
       run: |
-        ls -la xang_*
+        ls -lh xang_*
         file xang_linux_amd64
         file xang_darwin_amd64
+        file xang_darwin_arm64
         file xang_windows_amd64.exe
+    
+    # Optional: Upload artifacts for releases
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      if: success()
+      with:
+        name: xang-builds
+        path: |
+          xang_linux_amd64
+          xang_darwin_amd64
+          xang_darwin_arm64
+          xang_windows_amd64.exe
+        retention-days: 7
