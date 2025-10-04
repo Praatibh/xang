@@ -4,6 +4,7 @@ import (
 	"log"
 	"math/rand"
 	"time"
+	"fmt"
 
 	"github.com/Praatibh/xang/ui"
 
@@ -11,6 +12,19 @@ import (
 )
 
 func main() {
+	asciiArt := `
+░██    ░██    ░███    ░███    ░██   ░██████  
+ ░██  ░██    ░██░██   ░████   ░██  ░██   ░██ 
+  ░██░██    ░██  ░██  ░██░██  ░██ ░██        
+   ░███    ░█████████ ░██ ░██ ░██ ░██  █████ 
+  ░██░██   ░██    ░██ ░██  ░██░██ ░██     ██ 
+ ░██  ░██  ░██    ░██ ░██   ░████  ░██  ░███ 
+░██    ░██ ░██    ░██ ░██    ░███   ░█████░█
+
+ Welcome to Xang! Ask me something...
+`
+	fmt.Print(asciiArt)
+
 	rand.Seed(time.Now().UnixNano())
 
 	input, err := ui.NewUIInput()
