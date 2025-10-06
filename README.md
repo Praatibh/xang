@@ -33,7 +33,7 @@ Xang is already aware of your:
 Install Xang with a single command:
 
 ```shell
-curl -sS https://raw.githubusercontent.com/Praatibh/xang/main/install.sh | bash
+curl -sS https://raw.githubusercontent.com/Praatibh/xang/master/install.sh | bash
 ```
 
 ### First Run Setup
