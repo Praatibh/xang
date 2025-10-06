@@ -62,7 +62,7 @@ jobs:
     
     # Optional: Upload artifacts for releases
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success()
       with:
         name: xang-builds
